@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            padding: 10px;
+            margin: 8px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #userList {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>User Authentication</h2>
+        <form id="signInForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="button" onclick="signIn()">Sign In</button>
+        </form>
+
+        <div id="userList" style="display:none;">
+            <h3>User List</h3>
+            <ul id="users"></ul>
+        </div>
+    </div>
+
+    <script>
+        async function signIn() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('http://localhost:3000/sign-in', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (data.token) {
+                document.getElementById('signInForm').style.display = 'none';
+                document.getElementById('userList').style.display = 'block';
+                getUsers(data.token);
+            } else {
+                alert('User not found');
+            }
+        }
+
+        async function getUsers(token) {
+            const response = await fetch('http://localhost:3000/users', {
+                method: 'GET',
+                headers: {
+                    'Authorization': token,
+                },
+            });
+            
+            const data = await response.json();
+
+            const userList = document.getElementById('users');
+            userList.innerHTML = '';
+
+            data.users.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.textContent = user.name;
+                userList.appendChild(listItem);
+            });
+        }
+    </script>
+</body>
+</html>
